@@ -1,0 +1,41 @@
+{% extends 'quiz/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Elenco Lezioni</h2>
+    <a href="{% url 'lecture_create' %}" class="btn btn-success">Nuova Lezione</a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Titolo</th>
+                        <th>Descrizione</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lecture in lectures %}
+                    <tr>
+                        <td><a href="{% url 'lecture_detail' lecture.id %}" class="fw-bold">{{ lecture.title }}</a></td>
+                        <td>{{ lecture.description|truncatechars:50 }}</td>
+                        <td>
+                            <a href="{% url 'lecture_update' lecture.id %}"
+                                class="btn btn-sm btn-primary me-1">Modifica</a>
+                            <a href="{% url 'lecture_delete' lecture.id %}" class="btn btn-sm btn-danger">Elimina</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center py-4">Nessuna lezione trovata.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

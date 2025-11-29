@@ -1,0 +1,62 @@
+{% extends 'quiz/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">{{ title }}</h4>
+            </div>
+            <div class="card-body">
+
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.json_data.label }}</label>
+                        {{ form.json_data }}
+                        <div class="form-text text-muted">
+                            {{ form.json_data.help_text }}
+                        </div>
+                        {% if form.json_data.errors %}
+                        <div class="text-danger small">
+                            {{ form.json_data.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="alert alert-info small">
+                        <strong>Formato richiesto:</strong>
+                        <pre class="mt-2 mb-0 text-white bg-dark p-2 rounded">
+{
+  "questions": [
+    {
+      "lecture_title": "Nome Lezione",
+      "question_text": "Testo domanda...",
+      "options": ["Opz1", "Opz2", "Opz3", "Opz4"],
+      "correct_index": 0,
+      "nature": "Teorica"
+    }
+  ]
+}</pre>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{% url 'home' %}" class="btn btn-secondary">Indietro</a>
+                        <button type="submit" class="btn btn-primary">Importa Domande</button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

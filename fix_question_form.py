@@ -1,0 +1,87 @@
+
+content = """{% extends 'quiz/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">{{ title }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Lezione</label>
+                        {{ form.lecture }}
+                        {{ form.lecture.errors }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Testo Domanda</label>
+                        {{ form.text }}
+                        {{ form.text.errors }}
+                    </div>
+
+                    <hr class="border-secondary my-4">
+                    <h5 class="mb-3">Opzioni di Risposta</h5>
+                    <p class="text-muted small mb-3">Inserisci le 4 opzioni e seleziona quella corretta.</p>
+
+                    <div class="mb-3">
+                        <div class="input-group mb-2">
+                            <div class="input-group-text bg-dark border-secondary">
+                                <input class="form-check-input mt-0" type="radio" name="correct_option" value="1" {% if form.correct_option.value == '1' %}checked{% endif %} required>
+                            </div>
+                            {{ form.option_1 }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="input-group mb-2">
+                            <div class="input-group-text bg-dark border-secondary">
+                                <input class="form-check-input mt-0" type="radio" name="correct_option" value="2" {% if form.correct_option.value == '2' %}checked{% endif %}>
+                            </div>
+                            {{ form.option_2 }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="input-group mb-2">
+                            <div class="input-group-text bg-dark border-secondary">
+                                <input class="form-check-input mt-0" type="radio" name="correct_option" value="3" {% if form.correct_option.value == '3' %}checked{% endif %}>
+                            </div>
+                            {{ form.option_3 }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="input-group mb-2">
+                            <div class="input-group-text bg-dark border-secondary">
+                                <input class="form-check-input mt-0" type="radio" name="correct_option" value="4" {% if form.correct_option.value == '4' %}checked{% endif %}>
+                            </div>
+                            {{ form.option_4 }}
+                        </div>
+                    </div>
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            {{ form.errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="javascript:history.back()" class="btn btn-secondary">Annulla</a>
+                        <button type="submit" class="btn btn-success">Salva Domanda</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+"""
+
+with open('quiz/templates/quiz/question_form.html', 'w', encoding='utf-8') as f:
+    f.write(content)
+print("File written successfully")

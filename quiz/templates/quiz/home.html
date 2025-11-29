@@ -1,0 +1,47 @@
+{% extends 'quiz/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center mb-5">
+        <h1 class="display-4 mb-3">Quiz Informatica Teorica</h1>
+        <p class="lead mb-4">Mettiti alla prova con le domande d'esame.</p>
+
+        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+            <a href="{% url 'quiz_start_total' %}" class="btn btn-primary btn-lg px-4 gap-3">Quiz Totale</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4 border-bottom pb-2 border-secondary">Lezioni Disponibili</h2>
+    </div>
+    {% for item in lectures %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">{{ item.lecture.title }}</h5>
+                <p class="card-text text-muted small">{{ item.lecture.description|truncatechars:100 }}</p>
+                <div class="mt-auto">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-indigo-900 border border-secondary">{{ item.question_count }}
+                            Domande</span>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'quiz_start_lecture' item.lecture.id %}"
+                            class="btn btn-outline-light btn-sm">Quiz su questa lezione</a>
+                        <a href="{% url 'lecture_detail' item.lecture.id %}" class="btn btn-secondary btn-sm">Gestisci
+                            domande</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <p class="text-muted">Nessuna lezione presente.</p>
+        <a href="{% url 'lecture_create' %}" class="btn btn-success">Aggiungi Lezione</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

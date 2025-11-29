@@ -1,0 +1,85 @@
+{% extends 'quiz/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">{{ title }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <div class="text-danger small mt-1">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="javascript:history.back()" class="btn btn-secondary">Annulla</a>
+                        <button type="submit" class="btn btn-success">Salva</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if lecture %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-10">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">Domande della Lezione ({{ questions.count }})</h4>
+            <a href="{% url 'question_create' lecture.id %}" class="btn btn-success btn-sm">Aggiungi Domanda</a>
+        </div>
+        
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 40%">Testo</th>
+                                <th class="text-center">Natura</th>
+                                <th class="text-center">Risposte</th>
+                                <th class="text-center">Corrette</th>
+                                <th class="text-center">Errate</th>
+                                <th class="text-end">Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for question in questions %}
+                            <tr>
+                                <td>{{ question.text|truncatechars:80 }}</td>
+                                <td class="text-center"><span
+                                        class="badge {% if question.nature == 'Teorica' %}bg-info{% else %}bg-warning{% endif %}">{{
+                                        question.nature }}</span></td>
+                                <td class="text-center">{{ question.times_answered }}</td>
+                                <td class="text-center text-success">{{ question.times_correct }}</td>
+                                <td class="text-center text-danger">{{ question.times_wrong }}</td>
+                                <td class="text-end">
+                                    <a href="{% url 'question_update' question.id %}"
+                                        class="btn btn-sm btn-secondary">Modifica</a>
+                                    <a href="{% url 'question_delete' question.id %}"
+                                        class="btn btn-sm btn-danger ms-1">Elimina</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4">Nessuna domanda in questa lezione.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'quiz/base.html' %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'lecture_list' %}" class="text-muted">&larr; Torna alle lezioni</a>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">{{ lecture.title }}</h1>
+        <p class="text-muted">{{ lecture.description }}</p>
+    </div>
+    <div>
+        <a href="{% url 'quiz_start_lecture' lecture.id %}" class="btn btn-primary me-2">Avvia Quiz</a>
+        <a href="{% url 'question_create' lecture.id %}" class="btn btn-success">Aggiungi Domanda</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-transparent border-secondary">
+        <h5 class="mb-0">Domande ({{ questions.count }})</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 40%">Testo</th>
+                        <th class="text-center">Natura</th>
+                        <th class="text-center">Risposte</th>
+                        <th class="text-center">Corrette</th>
+                        <th class="text-center">Errate</th>
+                        <th class="text-end">Azioni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for question in questions %}
+                    <tr>
+                        <td>{{ question.text|truncatechars:100 }}</td>
+                        <td class="text-center"><span
+                                class="badge {% if question.nature == 'Teorica' %}bg-info{% else %}bg-warning{% endif %}">{{
+                                question.nature }}</span></td>
+                        <td class="text-center">{{ question.times_answered }}</td>
+                        <td class="text-center text-success">{{ question.times_correct }}</td>
+                        <td class="text-center text-danger">{{ question.times_wrong }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'question_update' question.id %}"
+                                class="btn btn-sm btn-secondary">Modifica</a>
+                            <a href="{% url 'question_delete' question.id %}"
+                                class="btn btn-sm btn-danger ms-1">Elimina</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">Nessuna domanda in questa lezione.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
