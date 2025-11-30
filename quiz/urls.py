@@ -24,4 +24,7 @@ urlpatterns = [
     path('quiz/lecture/<int:lecture_id>/', views.quiz_start_lecture, name='quiz_start_lecture'),
     path('quiz/run/', views.quiz_question, name='quiz_question'),
     path('quiz/summary/', views.quiz_summary, name='quiz_summary'),
+    
+    # Stats
+    path('stats/', views.stats_global, name='stats_global'),
 ]

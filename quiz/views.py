@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 import django.http
-from django.db.models import F
+from django.db.models import F, Sum, ExpressionWrapper, FloatField
 from django.contrib import messages
 from .models import Lecture, Question, AnswerOption
 from .forms import LectureForm, QuestionForm, QuestionImportForm
@@ -27,7 +27,34 @@ def lecture_list(request):
 def lecture_detail(request, lecture_id):
     lecture = get_object_or_404(Lecture, pk=lecture_id)
     questions = lecture.questions.all()
-    return render(request, 'quiz/lecture_detail.html', {'lecture': lecture, 'questions': questions})
+    
+    # Calculate stats for this lecture
+    stats = questions.aggregate(
+        answered=Sum('times_answered'),
+        correct=Sum('times_correct'),
+        wrong=Sum('times_wrong')
+    )
+    
+    answered = stats['answered'] or 0
+    correct = stats['correct'] or 0
+    wrong = stats['wrong'] or 0
+    
+    accuracy = 0
+    if answered > 0:
+        accuracy = (correct / answered) * 100
+        
+    lecture_stats = {
+        'answered': answered,
+        'correct': correct,
+        'wrong': wrong,
+        'accuracy': round(accuracy, 1)
+    }
+    
+    return render(request, 'quiz/lecture_detail.html', {
+        'lecture': lecture, 
+        'questions': questions,
+        'stats': lecture_stats
+    })
 
 def lecture_create(request):
     if request.method == 'POST':
@@ -309,3 +336,59 @@ def lecture_export_json(request, lecture_id):
     response = django.http.JsonResponse(export_data, json_dumps_params={'indent': 4})
     response['Content-Disposition'] = f'attachment; filename="lecture_{lecture.id}_questions.json"'
     return response
+
+def stats_global(request):
+    # Global Stats
+    total_questions = Question.objects.count()
+    agg_stats = Question.objects.aggregate(
+        total_answered=Sum('times_answered'),
+        total_correct=Sum('times_correct'),
+        total_wrong=Sum('times_wrong')
+    )
+    
+    # Handle None values if no questions answered yet
+    total_answered = agg_stats['total_answered'] or 0
+    total_correct = agg_stats['total_correct'] or 0
+    total_wrong = agg_stats['total_wrong'] or 0
+    
+    global_accuracy = 0
+    if total_answered > 0:
+        global_accuracy = (total_correct / total_answered) * 100
+
+    # Per-Lecture Stats
+    lectures = Lecture.objects.annotate(
+        l_answered=Sum('questions__times_answered'),
+        l_correct=Sum('questions__times_correct')
+    ).order_by('title')
+    
+    lecture_stats = []
+    for lec in lectures:
+        l_ans = lec.l_answered or 0
+        l_corr = lec.l_correct or 0
+        accuracy = 0
+        if l_ans > 0:
+            accuracy = (l_corr / l_ans) * 100
+        lecture_stats.append({
+            'title': lec.title,
+            'accuracy': round(accuracy, 1),
+            'answered': l_ans
+        })
+
+    # Hardest Questions (min 3 attempts to be significant)
+    hardest_questions = Question.objects.filter(times_answered__gte=3).annotate(
+        accuracy=ExpressionWrapper(
+            F('times_correct') * 100.0 / F('times_answered'),
+            output_field=FloatField()
+        )
+    ).order_by('accuracy')[:5]
+
+    context = {
+        'total_questions': total_questions,
+        'total_answered': total_answered,
+        'total_correct': total_correct,
+        'total_wrong': total_wrong,
+        'global_accuracy': round(global_accuracy, 1),
+        'lecture_stats': lecture_stats,
+        'hardest_questions': hardest_questions
+    }
+    return render(request, 'quiz/stats.html', context)

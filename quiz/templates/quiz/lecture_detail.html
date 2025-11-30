@@ -16,6 +16,24 @@
     </div>
 </div>
 
+<div class="row mb-4">
+    <div class="col-md-8">
+        <!-- Optional: Lecture content or more details could go here -->
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-header">Statistiche Lezione</div>
+            <div class="card-body">
+                <canvas id="lectureDetailChart"></canvas>
+                <div class="mt-2 text-center">
+                    <strong>Accuratezza: {{ stats.accuracy }}%</strong><br>
+                    <small>Su {{ stats.answered }} risposte</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-header bg-transparent border-secondary">
         <h5 class="mb-0">Domande ({{ questions.count }})</h5>
@@ -38,8 +56,7 @@
                     <tr>
                         <td>{{ question.text|truncatechars:100 }}</td>
                         <td class="text-center"><span
-                                class="badge {% if question.nature == 'Teorica' %}bg-info{% else %}bg-warning{% endif %}">{{
-                                question.nature }}</span></td>
+                                class="badge {% if question.nature == 'Teorica' %}bg-info{% else %}bg-warning{% endif %}">{{ question.nature }}</span></td>
                         <td class="text-center">{{ question.times_answered }}</td>
                         <td class="text-center text-success">{{ question.times_correct }}</td>
                         <td class="text-center text-danger">{{ question.times_wrong }}</td>
@@ -60,4 +77,32 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const ctxDetail = document.getElementById('lectureDetailChart').getContext('2d');
+    new Chart(ctxDetail, {
+        type: 'doughnut',
+        data: {
+            labels: ['Corrette', 'Errate'],
+            datasets: [{
+                data: [{{ stats.correct }}, {{ stats.wrong }}],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(255, 99, 132, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}

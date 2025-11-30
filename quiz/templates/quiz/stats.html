@@ -1,0 +1,129 @@
+{% extends 'quiz/base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Dashboard Statistiche</h2>
+    </div>
+</div>
+
+<!-- Global Counters -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">Domande Totali</div>
+            <div class="card-body">
+                <h1 class="card-title">{{ total_questions }}</h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-header">Risposte Date</div>
+            <div class="card-body">
+                <h1 class="card-title">{{ total_answered }}</h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Accuratezza Globale</div>
+            <div class="card-body">
+                <h1 class="card-title">{{ global_accuracy }}%</h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-header">Errori Totali</div>
+            <div class="card-body">
+                <h1 class="card-title">{{ total_wrong }}</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Lecture Performance Chart -->
+    <div class="col-md-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Performance per Lezione</div>
+            <div class="card-body">
+                <canvas id="lectureChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hardest Questions -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-warning text-dark">Domande Più Difficili</div>
+            <ul class="list-group list-group-flush">
+                {% for q in hardest_questions %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span class="text-truncate" style="max-width: 200px;" title="{{ q.text }}">{{ q.text }}</span>
+                    <span class="badge bg-danger rounded-pill">{{ q.accuracy|floatformat:1 }}%</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item">Dati insufficienti.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('lectureChart').getContext('2d');
+    
+    // Prepare data from Django context
+    const labels = [{% for item in lecture_stats %}"{{ item.title|escapejs }}",{% endfor %}];
+    const dataAccuracy = [{% for item in lecture_stats %}{{ item.accuracy }},{% endfor %}];
+    const dataAnswered = [{% for item in lecture_stats %}{{ item.answered }},{% endfor %}];
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '% Corrette',
+                data: dataAccuracy,
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                yAxisID: 'y'
+            }, {
+                label: 'Risposte Date',
+                data: dataAnswered,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Percentuale (%)'
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Numero Risposte'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
