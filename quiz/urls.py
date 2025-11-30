@@ -10,6 +10,7 @@ urlpatterns = [
     path('lectures/<int:lecture_id>/', views.lecture_detail, name='lecture_detail'),
     path('lectures/<int:lecture_id>/edit/', views.lecture_update, name='lecture_update'),
     path('lectures/<int:lecture_id>/delete/', views.lecture_delete, name='lecture_delete'),
+    path('lectures/<int:lecture_id>/export/', views.lecture_export_json, name='lecture_export_json'),
     
     # Questions CRUD
     path('questions/import/', views.question_import, name='question_import'),

@@ -25,6 +25,7 @@
                         <td>
                             <a href="{% url 'lecture_update' lecture.id %}"
                                 class="btn btn-sm btn-primary me-1">Modifica</a>
+                            <a href="{% url 'lecture_export_json' lecture.id %}" class="btn btn-sm btn-info me-1" title="Scarica JSON">JSON</a>
                             <a href="{% url 'lecture_delete' lecture.id %}" class="btn btn-sm btn-danger">Elimina</a>
                         </td>
                     </tr>

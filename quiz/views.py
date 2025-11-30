@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+import django.http
 from django.db.models import F
 from django.contrib import messages
 from .models import Lecture, Question, AnswerOption
@@ -272,3 +273,39 @@ def quiz_summary(request):
         percent = (stats['correct'] / stats['total']) * 100
     
     return render(request, 'quiz/quiz_summary.html', {'stats': stats, 'percent': percent})
+
+def lecture_export_json(request, lecture_id):
+    lecture = get_object_or_404(Lecture, pk=lecture_id)
+    questions = lecture.questions.all()
+    
+    questions_data = []
+    for q in questions:
+        options = [opt.text for opt in q.options.all()]
+        try:
+            correct_option = q.options.get(is_correct=True)
+            # Find index of correct option in the list of options
+            # Note: The order must match. Since we just created the list from .all(), 
+            # we need to be careful. Let's do it more robustly.
+            options_objs = list(q.options.all())
+            options_text = [opt.text for opt in options_objs]
+            correct_index = -1
+            for i, opt in enumerate(options_objs):
+                if opt.is_correct:
+                    correct_index = i
+                    break
+        except AnswerOption.DoesNotExist:
+            correct_index = -1 # Should not happen ideally
+            
+        questions_data.append({
+            'lecture_title': lecture.title,
+            'question_text': q.text,
+            'options': options_text,
+            'correct_index': correct_index,
+            'nature': q.nature
+        })
+        
+    export_data = {'questions': questions_data}
+    
+    response = django.http.JsonResponse(export_data, json_dumps_params={'indent': 4})
+    response['Content-Disposition'] = f'attachment; filename="lecture_{lecture.id}_questions.json"'
+    return response
