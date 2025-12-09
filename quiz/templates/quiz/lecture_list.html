@@ -2,41 +2,73 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Elenco Lezioni</h2>
-    <a href="{% url 'lecture_create' %}" class="btn btn-success">Nuova Lezione</a>
+    <div class="d-flex align-items-center">
+        <h2 class="mb-0">{% if subject %}Lezioni di {{ subject.name }}{% else %}Elenco Lezioni{% endif %}</h2>
+        {% if subject %}
+        <div class="dropdown ms-3">
+            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-gear"></i> Gestisci Materia
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'subject_update' subject.id %}"><i class="bi bi-pencil me-2"></i>Modifica</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="{% url 'subject_delete' subject.id %}"><i class="bi bi-trash me-2"></i>Elimina</a></li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    <div class="d-flex gap-2">
+        {% if subject %}
+        <a href="{% url 'quiz_start_subject' subject.id %}" class="btn btn-primary"><i class="bi bi-play-circle-fill"></i> Quiz Totale Materia</a>
+        {% endif %}
+        <a href="{% url 'lecture_create' %}" class="btn btn-success"><i class="bi bi-plus-lg"></i> Nuova Lezione</a>
+    </div>
 </div>
 
-<div class="card">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>Titolo</th>
-                        <th>Descrizione</th>
-                        <th>Azioni</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for lecture in lectures %}
-                    <tr>
-                        <td><a href="{% url 'lecture_detail' lecture.id %}" class="fw-bold">{{ lecture.title }}</a></td>
-                        <td>{{ lecture.description|truncatechars:50 }}</td>
-                        <td>
-                            <a href="{% url 'lecture_update' lecture.id %}"
-                                class="btn btn-sm btn-primary me-1">Modifica</a>
-                            <a href="{% url 'lecture_export_json' lecture.id %}" class="btn btn-sm btn-info me-1" title="Scarica JSON">JSON</a>
-                            <a href="{% url 'lecture_delete' lecture.id %}" class="btn btn-sm btn-danger">Elimina</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3" class="text-center py-4">Nessuna lezione trovata.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<div class="row">
+    {% for lecture in lectures %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0 text-primary">{{ lecture.title }}</h5>
+                    <div class="dropdown">
+                        <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{% url 'lecture_update' lecture.id %}">Modifica</a></li>
+                            <li><a class="dropdown-item" href="{% url 'lecture_export_json' lecture.id %}">Esporta JSON</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'lecture_delete' lecture.id %}">Elimina</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <p class="card-text text-muted small flex-grow-1">{{ lecture.description|truncatechars:100 }}</p>
+                
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-light text-dark border">{{ lecture.questions.count }} Domande</span>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'quiz_start_lecture' lecture.id %}" class="btn btn-primary">
+                            <i class="bi bi-play-fill"></i> Avvia Quiz
+                        </a>
+                        <a href="{% url 'lecture_detail' lecture.id %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-eye"></i> Dettagli
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <h4 class="text-muted">Nessuna lezione presente.</h4>
+        <p class="text-muted">Crea una nuova lezione per iniziare.</p>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

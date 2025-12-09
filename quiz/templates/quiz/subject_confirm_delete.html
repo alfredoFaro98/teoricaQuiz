@@ -1,0 +1,19 @@
+{% extends 'quiz/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+        <div class="alert alert-danger" role="alert">
+            <h4 class="alert-heading">Conferma Eliminazione</h4>
+            <p>Sei sicuro di voler eliminare la materia <strong>{{ subject.name }}</strong>?</p>
+            <p class="mb-0">Questa azione eliminerà anche tutte le sue lezioni e domande associate. Non può essere annullata.</p>
+        </div>
+        
+        <form method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-lg me-2">Elimina Definitivamente</button>
+        </form>
+        <a href="{% url 'home' %}" class="btn btn-secondary btn-lg">Annulla</a>
+    </div>
+</div>
+{% endblock %}

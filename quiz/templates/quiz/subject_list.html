@@ -1,0 +1,54 @@
+{% extends 'quiz/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center mb-5">
+        <h1 class="display-4 mb-3">secssub</h1>
+        <p class="lead mb-4">Seleziona una materia per iniziare.</p>
+
+        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+            <a href="{% url 'subject_create' %}" class="btn btn-success btn-lg px-4 gap-3">Nuova Materia</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4 border-bottom pb-2 border-secondary">Materie</h2>
+    </div>
+    {% for subject in subjects %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100" style="border-top: 4px solid {{ subject.color }};">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0">{{ subject.name }}</h5>
+                    <div class="dropdown" style="z-index: 2;">
+                        <button class="btn btn-link text-muted p-0" type="button" id="dropdownMenuButton{{ subject.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-three-dots-vertical"></i> :
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton{{ subject.id }}">
+                            <li><a class="dropdown-item" href="{% url 'subject_update' subject.id %}">Modifica</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'subject_delete' subject.id %}">Elimina</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <p class="card-text text-muted small">{{ subject.description|truncatechars:100 }}</p>
+                <div class="mt-auto">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-secondary">{{ subject.lectures.count }} Lezioni</span>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'subject_detail' subject.id %}" class="btn btn-outline-primary stretched-link">Vai alle lezioni</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <p class="text-muted">Nessuna materia presente.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,16 +1,34 @@
 from django import forms
-from .models import Lecture, Question, AnswerOption
+from .models import Lecture, Question, AnswerOption, Subject
+
+class SubjectForm(forms.ModelForm):
+    class Meta:
+        model = Subject
+        fields = ['name', 'description', 'color']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'color': forms.TextInput(attrs={'class': 'form-control', 'type': 'color'}),
+        }
 
 class LectureForm(forms.ModelForm):
     class Meta:
         model = Lecture
-        fields = ['title', 'description']
+        fields = ['subject', 'title', 'description']
         widgets = {
+            'subject': forms.Select(attrs={'class': 'form-select'}),
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
 class QuestionForm(forms.ModelForm):
+    subject = forms.ModelChoiceField(
+        queryset=Subject.objects.all(),
+        label="Materia",
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select mb-3'})
+    )
+    
     option_1 = forms.CharField(max_length=500, widget=forms.TextInput(attrs={'class': 'form-control mb-2', 'placeholder': 'Option 1'}))
     option_2 = forms.CharField(max_length=500, widget=forms.TextInput(attrs={'class': 'form-control mb-2', 'placeholder': 'Option 2'}))
     option_3 = forms.CharField(max_length=500, widget=forms.TextInput(attrs={'class': 'form-control mb-2', 'placeholder': 'Option 3'}))

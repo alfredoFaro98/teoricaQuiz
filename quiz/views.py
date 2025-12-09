@@ -2,21 +2,47 @@ from django.shortcuts import render, get_object_or_404, redirect
 import django.http
 from django.db.models import F, Sum, ExpressionWrapper, FloatField
 from django.contrib import messages
-from .models import Lecture, Question, AnswerOption
-from .forms import LectureForm, QuestionForm, QuestionImportForm
+from .models import Lecture, Question, AnswerOption, Subject
+from .forms import LectureForm, QuestionForm, QuestionImportForm, SubjectForm
 import random
 import json
 
 def home(request):
-    lectures = Lecture.objects.all()
-    # Annotate with question count if needed, or just do it in template
-    lecture_data = []
-    for lecture in lectures:
-        lecture_data.append({
-            'lecture': lecture,
-            'question_count': lecture.questions.count()
-        })
-    return render(request, 'quiz/home.html', {'lectures': lecture_data})
+    subjects = Subject.objects.all()
+    return render(request, 'quiz/subject_list.html', {'subjects': subjects})
+
+def subject_detail(request, subject_id):
+    subject = get_object_or_404(Subject, pk=subject_id)
+    lectures = subject.lectures.all()
+    return render(request, 'quiz/lecture_list.html', {'lectures': lectures, 'subject': subject})
+
+def subject_create(request):
+    if request.method == 'POST':
+        form = SubjectForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = SubjectForm()
+    return render(request, 'quiz/subject_form.html', {'form': form, 'title': 'Nuova Materia'})
+
+def subject_update(request, subject_id):
+    subject = get_object_or_404(Subject, pk=subject_id)
+    if request.method == 'POST':
+        form = SubjectForm(request.POST, instance=subject)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = SubjectForm(instance=subject)
+    return render(request, 'quiz/subject_form.html', {'form': form, 'title': 'Modifica Materia', 'subject': subject})
+
+def subject_delete(request, subject_id):
+    subject = get_object_or_404(Subject, pk=subject_id)
+    if request.method == 'POST':
+        subject.delete()
+        return redirect('home')
+    return render(request, 'quiz/subject_confirm_delete.html', {'subject': subject})
 
 # --- CRUD Views ---
 
@@ -91,6 +117,15 @@ def lecture_delete(request, lecture_id):
         return redirect('lecture_list')
     return render(request, 'quiz/lecture_confirm_delete.html', {'lecture': lecture})
 
+def api_lectures(request):
+    subject_id = request.GET.get('subject')
+    lectures = Lecture.objects.all()
+    if subject_id:
+        lectures = lectures.filter(subject_id=subject_id)
+    
+    data = [{'id': l.id, 'title': l.title} for l in lectures]
+    return django.http.JsonResponse({'lectures': data})
+
 def question_create(request, lecture_id=None):
     initial = {}
     if lecture_id:
@@ -135,6 +170,16 @@ def quiz_start_total(request):
     request.session['quiz_index'] = 0
     request.session['quiz_stats'] = {'correct': 0, 'wrong': 0, 'total': 0}
     request.session['quiz_mode'] = 'Totale'
+    return redirect('quiz_question')
+
+def quiz_start_subject(request, subject_id):
+    subject = get_object_or_404(Subject, pk=subject_id)
+    questions = list(Question.objects.filter(lecture__subject=subject).values_list('id', flat=True))
+    random.shuffle(questions)
+    request.session['quiz_question_ids'] = questions
+    request.session['quiz_index'] = 0
+    request.session['quiz_stats'] = {'correct': 0, 'wrong': 0, 'total': 0}
+    request.session['quiz_mode'] = f"Materia: {subject.name}"
     return redirect('quiz_question')
 
 def quiz_start_lecture(request, lecture_id):
@@ -251,6 +296,7 @@ def question_import(request):
                 count = 0
                 for item in questions_list:
                     lecture_title = item.get('lecture_title')
+                    subject_name = item.get('subject') # Optional subject name
                     question_text = item.get('question_text')
                     options = item.get('options')
                     correct_index = item.get('correct_index')
@@ -262,8 +308,23 @@ def question_import(request):
                     if len(options) != 4:
                         continue
                         
+                    # Handle Subject
+                    subject = None
+                    if subject_name:
+                        subject, _ = Subject.objects.get_or_create(name=subject_name)
+
                     # Create/Get Lecture
-                    lecture, _ = Lecture.objects.get_or_create(title=lecture_title)
+                    # If subject is provided, we try to find/create lecture with that subject
+                    if subject:
+                        lecture, _ = Lecture.objects.get_or_create(title=lecture_title, defaults={'subject': subject})
+                        if lecture.subject != subject:
+                           # If lecture existed but had different subject, should we update? 
+                           # For now, let's just ensure if it was None we set it.
+                           if not lecture.subject:
+                               lecture.subject = subject
+                               lecture.save()
+                    else:
+                        lecture, _ = Lecture.objects.get_or_create(title=lecture_title)
                     
                     # Create Question
                     question = Question.objects.create(
